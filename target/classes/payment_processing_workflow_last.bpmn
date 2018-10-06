@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1vhn6w0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.16.0">
+  <bpmn:process id="payment_processing_workflow_new" name="Payment Processing Workflow" isExecutable="true">
+    <bpmn:startEvent id="PPW_Event_StartEvent" name="Start Payment Processing">
+      <bpmn:outgoing>SequenceFlow_0cqthrh</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0cqthrh" sourceRef="PPW_Event_StartEvent" targetRef="PPW_Task_ArchiveInboundFile" />
+    <bpmn:sequenceFlow id="SequenceFlow_0i4u1jo" sourceRef="PPW_Task_ArchiveInboundFile" targetRef="PPW_Task_PerformDuplicateFileCheck" />
+    <bpmn:serviceTask id="PPW_Task_ArchiveInboundFile" name="Archive Inbound File" camunda:asyncBefore="true" camunda:class="com.rbs.vanquish.framework.bpm.task.VanquishTaskExecutor">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property />
+          <camunda:property />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0cqthrh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0i4u1jo</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="PPW_Task_PerformDuplicateFileCheck" name="Perform Duplicate File Check" camunda:class="com.rbs.vanquish.framework.bpm.task.VanquishTaskExecutor">
+      <bpmn:incoming>SequenceFlow_0i4u1jo</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0t8lm8o</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1euxbb3">
+      <bpmn:incoming>SequenceFlow_0t8lm8o</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0af1ndo</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0s21pdc</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0t8lm8o" sourceRef="PPW_Task_PerformDuplicateFileCheck" targetRef="ExclusiveGateway_1euxbb3" />
+    <bpmn:sequenceFlow id="SequenceFlow_0af1ndo" name="duplicate = true" sourceRef="ExclusiveGateway_1euxbb3" targetRef="PPW_Task_Duplicate_File_Found">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${duplicate}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1j5hstp" sourceRef="PPW_Task_Duplicate_File_Found" targetRef="EndEvent_1i0tqad" />
+    <bpmn:sequenceFlow id="SequenceFlow_0s21pdc" name="duplicate = false" sourceRef="ExclusiveGateway_1euxbb3" targetRef="PPW_Task_Synatx_Check">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!duplicate}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="PPW_Task_Duplicate_File_Found" name="Duplicate File Found" camunda:class="com.rbs.vanquish.framework.bpm.task.VanquishTaskExecutor">
+      <bpmn:incoming>SequenceFlow_0af1ndo</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1j5hstp</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1i0tqad" name="End Payment Processing">
+      <bpmn:incoming>SequenceFlow_1j5hstp</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0y1h5lc</bpmn:incoming>
+      <bpmn:terminateEventDefinition />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0tjclwa" sourceRef="PPW_Task_WaitForGenericFormattedFile" targetRef="PPW_Task_InputFile_Transformed" />
+    <bpmn:serviceTask id="PPW_Task_InputFile_Transformed" name="Input file tarnsformed and to porcess" camunda:class="com.rbs.vanquish.framework.bpm.task.VanquishTaskExecutor">
+      <bpmn:incoming>SequenceFlow_0tjclwa</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0y1h5lc</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0y1h5lc" sourceRef="PPW_Task_InputFile_Transformed" targetRef="EndEvent_1i0tqad" />
+    <bpmn:sequenceFlow id="SequenceFlow_0aaqrs3" sourceRef="PPW_Task_Synatx_Check" targetRef="PPW_Task_WaitForGenericFormattedFile" />
+    <bpmn:receiveTask id="PPW_Task_WaitForGenericFormattedFile" name="Wait For Generic Formatted File" messageRef="Message_01nizto">
+      <bpmn:incoming>SequenceFlow_0aaqrs3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0tjclwa</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sendTask id="PPW_Task_Synatx_Check" name="Perform Syntax Check" camunda:class="com.rbs.vanquish.framework.bpm.task.VanquishTaskExecutor">
+      <bpmn:incoming>SequenceFlow_0s21pdc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0aaqrs3</bpmn:outgoing>
+    </bpmn:sendTask>
+  </bpmn:process>
+  <bpmn:message id="Message_01nizto" name="Message_ReceiveGenericFormattedFile" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="payment_processing_workflow_new">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="PPW_Event_StartEvent">
+        <dc:Bounds x="173" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="160" y="145" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cqthrh_di" bpmnElement="SequenceFlow_0cqthrh">
+        <di:waypoint x="209" y="120" />
+        <di:waypoint x="259" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0i4u1jo_di" bpmnElement="SequenceFlow_0i4u1jo">
+        <di:waypoint x="359" y="120" />
+        <di:waypoint x="409" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0qtfw08_di" bpmnElement="PPW_Task_ArchiveInboundFile">
+        <dc:Bounds x="259" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0htnrzj_di" bpmnElement="PPW_Task_PerformDuplicateFileCheck">
+        <dc:Bounds x="409" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1euxbb3_di" bpmnElement="ExclusiveGateway_1euxbb3" isMarkerVisible="true">
+        <dc:Bounds x="559" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0t8lm8o_di" bpmnElement="SequenceFlow_0t8lm8o">
+        <di:waypoint x="509" y="120" />
+        <di:waypoint x="559" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0af1ndo_di" bpmnElement="SequenceFlow_0af1ndo">
+        <di:waypoint x="609" y="120" />
+        <di:waypoint x="712" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="623" y="102" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1j5hstp_di" bpmnElement="SequenceFlow_1j5hstp">
+        <di:waypoint x="812" y="120" />
+        <di:waypoint x="904" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0s21pdc_di" bpmnElement="SequenceFlow_0s21pdc">
+        <di:waypoint x="584" y="145" />
+        <di:waypoint x="584" y="230" />
+        <di:waypoint x="712" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="598" y="215" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0y3zd10_di" bpmnElement="PPW_Task_Duplicate_File_Found">
+        <dc:Bounds x="712" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1r3f1rp_di" bpmnElement="EndEvent_1i0tqad">
+        <dc:Bounds x="904" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="888" y="64.5" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0tjclwa_di" bpmnElement="SequenceFlow_0tjclwa">
+        <di:waypoint x="1016" y="373" />
+        <di:waypoint x="1082" y="373" />
+        <di:waypoint x="1082" y="294" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_14ctahc_di" bpmnElement="PPW_Task_InputFile_Transformed">
+        <dc:Bounds x="1032" y="214" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0y1h5lc_di" bpmnElement="SequenceFlow_0y1h5lc">
+        <di:waypoint x="1082" y="214" />
+        <di:waypoint x="1082" y="120" />
+        <di:waypoint x="940" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0aaqrs3_di" bpmnElement="SequenceFlow_0aaqrs3">
+        <di:waypoint x="812" y="230" />
+        <di:waypoint x="964" y="230" />
+        <di:waypoint x="964" y="333" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ReceiveTask_1dijo24_di" bpmnElement="PPW_Task_WaitForGenericFormattedFile">
+        <dc:Bounds x="914" y="333" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_07dck3i_di" bpmnElement="PPW_Task_Synatx_Check">
+        <dc:Bounds x="712" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

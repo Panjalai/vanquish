@@ -1,0 +1,29 @@
+{
+	"Vanquish_Application": 
+	{
+    		"task": 
+    		[
+     			 {"taskName": "PPW_Task_ArchiveInboundFile",    		"class": "com.rbs.vanquish.bpm.task.PaymentFileArchiver"},
+                 {"taskName": "PPW_Task_PerformDuplicateFileCheck", 	"class": "com.rbs.vanquish.bpm.task.PerformDuplicateFileCheck"},
+                 {"taskName": "PPW_Task_Duplicate_File_Found", 			"class": "com.rbs.vanquish.bpm.task.PerformDuplicateFileFound"},
+                 {"taskName": "PPW_Task_Synatx_Check", 					"class": "com.rbs.vanquish.bpm.task.PerformSyntaxCheck"},
+                 {"taskName": "PPW_Task_CreateStatusDuplicateFile", 	"class": "com.rbs.vanquish.bpm.task.PerformSyntaxCheck"},
+                 {"taskName": "PPW_Task_CreateStatusSyntaxFailed", 		"class": "com.rbs.vanquish.bpm.task.PerformSyntaxCheck"},
+                 {"taskName": "PPW_Task_InputFile_Transformed", 		"class": "com.rbs.vanquish.bpm.task.PerformInputFileTransformed"}
+    		],
+    		
+    		
+    		"queue": 
+    		[
+     			 {"queueName": "VANQUISH_ENGINE.GENERIC.FILE.INBOUND.QUEUE.DEV",  "MessageName": "Message_ReceiveGenericFormattedFile"},
+     			 {"queueName": "Queue_Name",    						          "MessageName": "Message_Name"}
+    		],
+    		
+    		
+    		"event": 
+    		[
+     			 {"MessageName": "Message_ReceiveGenericFormattedFile",          "class": "com.rbs.vanquish.bpm.event.handler.ConvertedToCommonFileFormat"},
+     			 {"MessageName": "Message_Name",    				             "class": "com.rbs.vanquish.bpm.task.PaymentFileArchiver"}
+    		]
+    }
+}
